@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+    <script src="./orders.js"></script>
+</head>
+
+<body>
+    <div>
+        <h1>Top 1 Order - <span id="topOrder"></span></h1>
+        <h1>Top 1 Country - <span id="topCountry"></span></h1>
+        <h1>Top 1 Customer - <span id="topCustomer"></span></h1>
+        <h1>Top 1 Employee - <span id="topEmployee"></span></h1>
+        <h1>Top 1 Sold Product - <span id="topProduct"></span></h1>
+
+    </div>
+    <table class="w3-table-all w3-hoverable">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Customer Id</th>
+                <th>Employee Id</th>
+                <th>Order Date</th>
+                <th>Ship City</th>
+                <th>Ship Country</th>
+                <th>Cart Lenght</th>
+                <th style="cursor: pointer" onclick="orderByTotal()">Total</th>
+            </tr>
+        </thead>
+        <tbody>
+
+        </tbody>
+    </table>
+
+
+
+</body>
+<script>
+
+    function fillTable(data) {
+
+        document.querySelector('tbody').innerHTML = "";
+
+        data.forEach(element => {
+
+            let trElement = document.createElement('tr');
+
+            let idTd = document.createElement('td');
+            idTd.innerHTML = element.id;
+
+            let customerIdTd = document.createElement('td');
+            customerIdTd.innerHTML = element.customerId;
+
+            let employeeIdTd = document.createElement('td');
+            employeeIdTd.innerHTML = element.employeeId;
+
+            let orderDateTd = document.createElement('td');
+            orderDateTd.innerHTML = element.orderDate;
+
+            let shipCityTd = document.createElement('td');
+            shipCityTd.innerHTML = element.shipAddress.city;
+
+            let shipCountryTd = document.createElement('td');
+            shipCountryTd.innerHTML = element.shipAddress.country;
+
+            let cartLengthTd = document.createElement('td');
+            cartLengthTd.innerHTML = element.details.length;
+
+
+            let totalCart = 0;
+
+            element.details.forEach(item => {
+                totalCart = totalCart + ((item.unitPrice * item.quantity) * (1 - item.discount))
+            })
+
+            let cartTotalTd = document.createElement('td');
+            cartTotalTd.innerHTML = totalCart.toFixed(2);
+
+            element.cartLength = element.details.length;
+            element.totalCart = totalCart;
+
+            trElement.appendChild(idTd);
+            trElement.appendChild(customerIdTd);
+            trElement.appendChild(employeeIdTd);
+            trElement.appendChild(orderDateTd);
+            trElement.appendChild(shipCityTd);
+            trElement.appendChild(shipCountryTd);
+            trElement.appendChild(cartLengthTd);
+            trElement.appendChild(cartTotalTd);
+
+            document.querySelector('tbody').appendChild(trElement);
+        });
+    }
+
+
+    fillTable(orders);
+
+    let orderByTotalAsc = false;
+
+    function orderByTotal() {
+
+        if (orderByTotalAsc == false) {
+            orders.sort(function (a, b) {
+                return b.totalCart - a.totalCart;
+            });
+
+            orderByTotalAsc = true;
+
+        }
+        else {
+            orders.sort(function (a, b) {
+                return a.totalCart - b.totalCart;
+            });
+
+            orderByTotalAsc = false;
+        }
+
+        fillTable(orders);
+    }
+
+    //top order calc
+    orders.sort(function (a, b) {
+        return b.totalCart - a.totalCart;
+    })
+
+    let topOrder = orders[0];
+
+    document.getElementById('topOrder').innerHTML = topOrder.customerId + " " + topOrder.totalCart
+
+
+
+    //En çok hangi ülkeye satış yaptım VE ne kadar?
+
+    let countrySales = [];
+
+    orders.forEach(element => {
+
+        let countryData = countrySales.find(q => q.name == element.shipAddress.country);
+
+        if (countryData != undefined) {
+            countryData.totalAmount = countryData.totalAmount + element.totalCart;
+        }
+        else {
+            let newCountry = {
+                name: element.shipAddress.country,
+                totalAmount: element.totalCart
+            }
+            countrySales.push(newCountry);
+        }
+
+    });
+
+
+    let sortedCountry = countrySales.sort(function (a, b) {
+        return b.totalAmount - a.totalAmount
+    })
+
+    document.getElementById('topCountry').innerHTML = sortedCountry[0].name + " " +  sortedCountry[0].totalAmount.toFixed(2);
+
+
+
+    //En kıymetli müşterim
+    //En kıymetli çalışanım
+
+
+    //Ürün satış adet miktar
+
+    let productSalesCount = [];
+
+    orders.forEach(element => {
+
+        element.details.forEach(item => {
+            let product = productSalesCount.find(q => q.productId == item.productId);
+
+            if(product != undefined){
+                product.quantity = product.quantity + item.quantity
+            }
+            else{
+                let newProduct = {
+                    productId : item.productId,
+                    quantity : item.quantity
+                }
+                productSalesCount.push(newProduct);
+            }
+        })
+
+    })
+
+
+    // task 1
+    let result = orders.filter(element => element.freight > 1)
+
+    console.log(result.length)
+
+
+    // task 2
+    result = orders.filter(element => element.customerId == "WARTH");
+
+    console.log(result.length)
+    
+    // Task 3
+    //En kıymetli müşterim
+    let customersData = [];
+    
+    orders.forEach(order => {
+        
+        order.details.forEach(element => {
+
+            let product = customersData.find(q => q.id == order.customerId);
+
+            if(product != undefined) {
+                product.totalCart += (element.unitPrice * element.quantity) * (1 - element.discount)
+            } else {
+                
+                let arr = {
+                    id: order.customerId,
+                    totalCart: (element.unitPrice * element.quantity) * (1 - element.discount)
+                }
+
+                customersData.push(arr)
+            }
+        }) 
+    })
+
+    console.log(customersData)
+
+    let sortedCustomersData = customersData.sort(function (a, b) {
+        return b.totalCart - a.totalCart
+    })
+    
+    document.getElementById('topCustomer').innerHTML = sortedCustomersData[0].id + " " + sortedCustomersData[0].totalCart.toFixed(2);
+  
+
+    // Task 04
+    // Ən dəyərli işçi
+    let employeeData = []
+    
+    orders.forEach(order => {
+
+        order.details.forEach(product => {
+
+            let isEmpExist = employeeData.find(q => q.id == order.employeeId);
+
+            if(isEmpExist != undefined) {
+
+                isEmpExist.totalCosts += (product.unitPrice * product.quantity) * (1 - product.discount); 
+
+            } else {
+                let employee = {
+                    id: order.employeeId,
+                    totalCosts: (product.unitPrice * product.quantity) * (1 - product.discount)
+                }
+
+                employeeData.push(employee);
+            }
+        })
+    })
+
+    console.log(employeeData)
+
+    let sortedEmployeeData = employeeData.sort(function(a, b) {
+        return b.totalCosts - a.totalCosts;
+    })
+
+    document.getElementById('topEmployee').innerHTML = sortedEmployeeData[0].id + " - " + sortedEmployeeData[0].totalCosts.toFixed(2);
+
+    // 5) Hər sifarişin ümumi qiymətini tapan bir function yazılmalıdır.
+
+    function totalPriceOfOrder(orders) {
+        let ordersPrice = []
+        
+        orders.forEach(order => {
+
+            let sum = 0;
+
+            order.details.forEach(item => {
+
+                sum += (item.unitPrice + item.quantity) * (1 - item.discount);
+
+            });
+
+            ordersPrice.push({
+                id: order.id,
+                totalPrice: sum
+            });
+
+        });
+
+        return ordersPrice;
+    }    
+
+    console.log(totalPriceOfOrder(orders));
+
+    // 6) Ən yüksək endirim hansı sifarişdə olub onu hesablayan function.
+
+    function findMaxDiscount(orders) {  
+
+        let minDiscount = Number.MIN_SAFE_INTEGER;
+        let minDiscountId = 0;
+
+        orders.forEach(order => {
+
+            order.details.forEach(item => {
+                if(minDiscount < item.discount) {
+                    minDiscount = item.discount;
+                    minDiscountId = order.id;
+                }
+            }) 
+        });
+        
+        return orders.find(element => element.id == minDiscountId);
+    }
+
+    console.log(findMaxDiscount(orders));   
+
+    // 7) Ən çox satılan məhsulun id-ni tapan bir function
+
+    function maxSales(orders) {
+        let products = []
+       
+        orders.forEach(order => {
+
+            order.details.forEach(item => {
+
+                let isProdExist = products.find(q => q.id == item.productId);
+
+                if(isProdExist != undefined) {
+                    isProdExist.amount += item.quantity;
+
+                } else {
+                    products.push({
+                        id: item.productId,
+                        amount: item.quantity
+                    });
+                }
+            });
+        });
+
+        let sortedProductsByAmount = products.sort(function(a, b) {
+            return b.amount - a.amount;
+        })
+
+        return "Id# " + sortedProductsByAmount[0].id + " - " + sortedProductsByAmount[0].amount;
+    }
+
+    document.getElementById("topProduct").innerHTML = maxSales(orders);
+
+    // 8) Hər ölkədə (shipCountry) nə qədər satış olduğunu, nə qədər qazanc gətirdiyi barədə yeni bir array yaradılmalıdır. 
+    // Arrayin itemları bu şəkildə olacaq. ( { shipCountry: "USA", totapPrice: 1245, quantity: 123} )
+
+    function commonOrderData(orders) {
+        let data = []
+
+        orders.forEach(order => {
+
+            order.details.forEach(item => {
+
+                let product = data.find(q => q.shipCountry == order.shipAddress.country);
+
+                if(product != undefined) {
+                    product.totalPrice += (item.unitPrice + item.quantity) * (1 - item.discount);
+                    product.quantity += item.quantity;
+                } else {
+                    data.push({
+                        shipCountry: order.shipAddress.country,
+                        totalPrice: (item.unitPrice + item.quantity) * (1 - item.discount),                       
+                        quantity: item.quantity
+                    });
+                }
+            });
+        });
+
+        return data;
+    }
+
+    console.log(commonOrderData(orders));
+
+
+</script>
+
+</html>

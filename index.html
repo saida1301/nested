@@ -11,11 +11,6 @@
 </head>
 
 <body>
-    <div>
-        <h1>Top 1 Order - <span id="topOrder"></span></h1>
-        <h1>Top 1 Country - <span id="topCountry"></span></h1>
-
-    </div>
     <table class="w3-table-all w3-hoverable">
         <thead>
             <tr>
@@ -105,13 +100,103 @@ let filteredOrders = orders.filter(q => q.freight < 1);
 let filteredOrders2 = orders.filter(q => q.customerId == "WARTH");
 
 
-let filteredOrders3 = Math.max(orders.sort(function (a, b) {
-      return   b.details.discount - a.details.discount;
-    })) 
 
+  //3  
+    let customers = [];
     
-   
-  
+    orders.forEach(order => {
+        
+        order.details.forEach(element => {
+
+            let product = customers.find(q => q.id == order.customerId);
+
+            if(product != undefined) {
+                product.totalCart += (element.unitPrice * element.quantity) * (1 - element.discount)
+            } else {
+                
+                let arr = {
+                    id: order.customerId,
+                    totalCart: (element.unitPrice * element.quantity) * (1 - element.discount)
+                }
+
+                customers.push(arr)
+            }
+        }) 
+    })
+
+//4
+    let employees = [];
+    
+    orders.forEach(order => {
+        
+        order.details.forEach(element => {
+
+            let product = employees.find(q => q.id == order.employeeId);
+
+            if(product != undefined) {
+                product.totalCost += (element.unitPrice * element.quantity) * (1 - element.discount)
+            } else {
+                
+                let arr = {
+                    id: order.customerId,
+                    totalCost: (element.unitPrice * element.quantity) * (1 - element.discount)
+                }
+
+                employees.push(arr)
+            }
+        }) 
+    })
+
+  //5
+let filteredOrders3 = orders.sort(function (a, b) {
+      return   b.details.discount - a.details.discount;
+    })
+//6
+    let sale = [];
+    
+    orders.forEach(order => {
+        
+        order.details.forEach(element => {
+
+            let sales = sale.find(q => q.id == element.productId);
+
+            if(sales != undefined) {
+                sales.amount = sales.amount + element.quantity
+            } else {
+                
+                let arr = {
+                    id: order.productId,
+                    amount: element.quantity
+                }
+
+                sale.push(arr)
+            }
+        }) 
+    })   
+//8
+    let shipCountry = [];
+    
+    orders.forEach(order => {
+        
+        order.details.forEach(element => {
+
+            let sCountry = shipCountry.find(q => q.shipCountry == order.shipAddress.country);
+
+            if( sCountry != undefined) {
+                sCountry.totalPrice += (element.unitPrice * element.quantity) * (1 - element.discount)
+            } else {
+                
+                let arr = {
+                    shipCountry: order.shipAddress.country,
+                    totalPrice: (element.unitPrice + element.quantity) * (1 - element.discount),                       
+                    quantity: element.quantity
+                }
+
+                shipCountry.push(arr)
+            }
+        }) 
+    })   
+
 </script>
 
 </html>
